@@ -61,6 +61,14 @@ type Runtime interface {
 	For() string
 }
 
+// ConfigBase is a struct providing common fields used by implementations of the Runtime interface.
+// It serves as foundational structure that should be embedded in specific check config implementations.
+type ConfigBase struct {
+	GlobalTargets []string
+	Interval      time.Duration
+	Retry         helper.RetryConfig
+}
+
 // Result encapsulates the outcome of a check run.
 type Result struct {
 	// data contains performance metrics about the check run
