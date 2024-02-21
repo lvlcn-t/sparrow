@@ -44,12 +44,10 @@ type Check interface {
 	Run(ctx context.Context, cResult chan ResultDTO) error
 	// Shutdown is called once when the check is unregistered or sparrow shuts down
 	Shutdown(ctx context.Context) error
-	// SetConfig is called once when the check is registered
-	// This is also called while the check is running, if the remote config is updated
-	// This should return an error if the config is invalid
-	SetConfig(config Runtime) error
+	// SetConfig allows the check to update its configuration during runtime
+	SetConfig(config Config) error
 	// GetConfig returns the current configuration of the check
-	GetConfig() Runtime
+	GetConfig() Config
 	// Name returns the name of the check
 	Name() string
 	// Schema returns an openapi3.SchemaRef of the result type returned by the check
@@ -58,17 +56,17 @@ type Check interface {
 	GetMetricCollectors() []prometheus.Collector
 }
 
-// CheckBase is a struct providing common fields used by implementations of the Check interface.
+// Base is a struct providing common fields used by implementations of the Check interface.
 // It serves as a foundational structure that should be embedded in specific check implementations.
-type CheckBase struct {
+type Base struct {
 	// Mutex for thread-safe access to shared resources within the check implementation
-	Mu sync.Mutex
+	Mutex sync.Mutex
 	// Signal channel used to notify about shutdown of a check
 	DoneChan chan struct{}
 }
 
-// Runtime is the interface that all check configurations must implement
-type Runtime interface {
+// Config is the interface that all check configurations must implement
+type Config interface {
 	// For returns the name of the check being configured
 	For() string
 	// Validate checks if the configuration is valid

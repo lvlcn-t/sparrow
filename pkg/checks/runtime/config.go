@@ -52,8 +52,8 @@ func (c Config) Validate() (err error) {
 }
 
 // Iter returns configured checks in an iterable format
-func (c Config) Iter() []checks.Runtime {
-	var configs []checks.Runtime
+func (c Config) Iter() []checks.Config {
+	var configs []checks.Config
 	if c.Health != nil {
 		configs = append(configs, c.Health)
 	}
@@ -111,7 +111,7 @@ func (c Config) HasCheck(name string) bool {
 }
 
 // For returns the runtime configuration for the check with the given name
-func (c Config) For(name string) checks.Runtime {
+func (c Config) For(name string) checks.Config {
 	switch name {
 	case health.CheckName:
 		if c.HasHealthCheck() {

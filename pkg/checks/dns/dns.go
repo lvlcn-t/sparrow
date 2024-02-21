@@ -32,23 +32,23 @@ import (
 )
 
 var (
-	_ checks.Check   = (*DNS)(nil)
-	_ checks.Runtime = (*Config)(nil)
+	_ checks.Check  = (*DNS)(nil)
+	_ checks.Config = (*Config)(nil)
 )
 
 const CheckName = "dns"
 
 // DNS is a check that resolves the names and addresses
 type DNS struct {
-	checks.CheckBase
+	checks.Base
 	config  Config
 	metrics metrics
 	client  Resolver
 }
 
-func (d *DNS) GetConfig() checks.Runtime {
-	d.Mu.Lock()
-	defer d.Mu.Unlock()
+func (d *DNS) GetConfig() checks.Config {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	return &d.config
 }
 
@@ -59,8 +59,8 @@ func (d *DNS) Name() string {
 // NewCheck creates a new instance of the dns check
 func NewCheck() checks.Check {
 	return &DNS{
-		CheckBase: checks.CheckBase{
-			Mu:       sync.Mutex{},
+		Base: checks.Base{
+			Mutex:    sync.Mutex{},
 			DoneChan: make(chan struct{}, 1),
 		},
 		config: Config{
@@ -114,10 +114,10 @@ func (d *DNS) Shutdown(_ context.Context) error {
 	return nil
 }
 
-func (d *DNS) SetConfig(cfg checks.Runtime) error {
+func (d *DNS) SetConfig(cfg checks.Config) error {
 	if c, ok := cfg.(*Config); ok {
-		d.Mu.Lock()
-		defer d.Mu.Unlock()
+		d.Mutex.Lock()
+		defer d.Mutex.Unlock()
 		d.config = *c
 		return nil
 	}

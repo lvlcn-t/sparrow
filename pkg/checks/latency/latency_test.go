@@ -312,7 +312,7 @@ func TestLatency_check(t *testing.T) {
 func TestLatency_Shutdown(t *testing.T) {
 	cDone := make(chan struct{}, 1)
 	c := Latency{
-		CheckBase: checks.CheckBase{
+		Base: checks.Base{
 			DoneChan: cDone,
 		},
 	}

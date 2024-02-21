@@ -35,15 +35,15 @@ import (
 )
 
 var (
-	_ checks.Check   = (*Latency)(nil)
-	_ checks.Runtime = (*Config)(nil)
+	_ checks.Check  = (*Latency)(nil)
+	_ checks.Config = (*Config)(nil)
 )
 
 const CheckName = "latency"
 
 // Latency is a check that measures the latency to an endpoint
 type Latency struct {
-	checks.CheckBase
+	checks.Base
 	config  Config
 	metrics metrics
 }
@@ -51,8 +51,8 @@ type Latency struct {
 // NewCheck creates a new instance of the latency check
 func NewCheck() checks.Check {
 	return &Latency{
-		CheckBase: checks.CheckBase{
-			Mu:       sync.Mutex{},
+		Base: checks.Base{
+			Mutex:    sync.Mutex{},
 			DoneChan: make(chan struct{}, 1),
 		},
 		config: Config{
@@ -106,10 +106,10 @@ func (l *Latency) Shutdown(_ context.Context) error {
 }
 
 // SetConfig sets the configuration for the latency check
-func (l *Latency) SetConfig(cfg checks.Runtime) error {
+func (l *Latency) SetConfig(cfg checks.Config) error {
 	if c, ok := cfg.(*Config); ok {
-		l.Mu.Lock()
-		defer l.Mu.Unlock()
+		l.Mutex.Lock()
+		defer l.Mutex.Unlock()
 		l.metrics.RemoveObsolete(l.config.Targets, c.Targets)
 		l.config = *c
 		return nil
@@ -122,9 +122,9 @@ func (l *Latency) SetConfig(cfg checks.Runtime) error {
 }
 
 // GetConfig returns the current configuration of the latency Check
-func (l *Latency) GetConfig() checks.Runtime {
-	l.Mu.Lock()
-	defer l.Mu.Unlock()
+func (l *Latency) GetConfig() checks.Config {
+	l.Mutex.Lock()
+	defer l.Mutex.Unlock()
 	return &l.config
 }
 

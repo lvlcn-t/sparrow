@@ -51,8 +51,8 @@ func TestDNS_Run(t *testing.T) {
 			name: "success with no targets",
 			mockSetup: func() *DNS {
 				return &DNS{
-					CheckBase: checks.CheckBase{
-						Mu:       sync.Mutex{},
+					Base: checks.Base{
+						Mutex:    sync.Mutex{},
 						DoneChan: make(chan struct{}, 1),
 					},
 				}
@@ -248,7 +248,7 @@ func TestDNS_Run_Context_Done(t *testing.T) {
 func TestDNS_Shutdown(t *testing.T) {
 	cDone := make(chan struct{}, 1)
 	c := DNS{
-		CheckBase: checks.CheckBase{
+		Base: checks.Base{
 			DoneChan: cDone,
 		},
 	}
@@ -266,7 +266,7 @@ func TestDNS_Shutdown(t *testing.T) {
 func TestDNS_SetConfig(t *testing.T) {
 	tests := []struct {
 		name    string
-		input   checks.Runtime
+		input   checks.Config
 		want    Config
 		wantErr bool
 	}{
@@ -329,8 +329,8 @@ func stringPointer(s string) *string {
 
 func newCommonDNS() *DNS {
 	return &DNS{
-		CheckBase: checks.CheckBase{
-			Mu:       sync.Mutex{},
+		Base: checks.Base{
+			Mutex:    sync.Mutex{},
 			DoneChan: make(chan struct{}, 1),
 		},
 		metrics: newMetrics(),

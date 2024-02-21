@@ -20,7 +20,7 @@ var _ Check = &CheckMock{}
 //
 //		// make and configure a mocked Check
 //		mockedCheck := &CheckMock{
-//			GetConfigFunc: func() Runtime {
+//			GetConfigFunc: func() Config {
 //				panic("mock out the GetConfig method")
 //			},
 //			GetMetricCollectorsFunc: func() []prometheus.Collector {
@@ -35,7 +35,7 @@ var _ Check = &CheckMock{}
 //			SchemaFunc: func() (*openapi3.SchemaRef, error) {
 //				panic("mock out the Schema method")
 //			},
-//			SetConfigFunc: func(config Runtime) error {
+//			SetConfigFunc: func(config Config) error {
 //				panic("mock out the SetConfig method")
 //			},
 //			ShutdownFunc: func(ctx context.Context) error {
@@ -49,7 +49,7 @@ var _ Check = &CheckMock{}
 //	}
 type CheckMock struct {
 	// GetConfigFunc mocks the GetConfig method.
-	GetConfigFunc func() Runtime
+	GetConfigFunc func() Config
 
 	// GetMetricCollectorsFunc mocks the GetMetricCollectors method.
 	GetMetricCollectorsFunc func() []prometheus.Collector
@@ -64,7 +64,7 @@ type CheckMock struct {
 	SchemaFunc func() (*openapi3.SchemaRef, error)
 
 	// SetConfigFunc mocks the SetConfig method.
-	SetConfigFunc func(config Runtime) error
+	SetConfigFunc func(config Config) error
 
 	// ShutdownFunc mocks the Shutdown method.
 	ShutdownFunc func(ctx context.Context) error
@@ -93,7 +93,7 @@ type CheckMock struct {
 		// SetConfig holds details about calls to the SetConfig method.
 		SetConfig []struct {
 			// Config is the config argument value.
-			Config Runtime
+			Config Config
 		}
 		// Shutdown holds details about calls to the Shutdown method.
 		Shutdown []struct {
@@ -111,7 +111,7 @@ type CheckMock struct {
 }
 
 // GetConfig calls GetConfigFunc.
-func (mock *CheckMock) GetConfig() Runtime {
+func (mock *CheckMock) GetConfig() Config {
 	if mock.GetConfigFunc == nil {
 		panic("CheckMock.GetConfigFunc: method is nil but Check.GetConfig was just called")
 	}
@@ -255,12 +255,12 @@ func (mock *CheckMock) SchemaCalls() []struct {
 }
 
 // SetConfig calls SetConfigFunc.
-func (mock *CheckMock) SetConfig(config Runtime) error {
+func (mock *CheckMock) SetConfig(config Config) error {
 	if mock.SetConfigFunc == nil {
 		panic("CheckMock.SetConfigFunc: method is nil but Check.SetConfig was just called")
 	}
 	callInfo := struct {
-		Config Runtime
+		Config Config
 	}{
 		Config: config,
 	}
@@ -275,10 +275,10 @@ func (mock *CheckMock) SetConfig(config Runtime) error {
 //
 //	len(mockedCheck.SetConfigCalls())
 func (mock *CheckMock) SetConfigCalls() []struct {
-	Config Runtime
+	Config Config
 } {
 	var calls []struct {
-		Config Runtime
+		Config Config
 	}
 	mock.lockSetConfig.RLock()
 	calls = mock.calls.SetConfig

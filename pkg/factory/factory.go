@@ -29,7 +29,7 @@ import (
 )
 
 // newCheck creates a new check instance from the given name
-func newCheck(cfg checks.Runtime) (checks.Check, error) {
+func newCheck(cfg checks.Config) (checks.Check, error) {
 	if cfg == nil {
 		return nil, errors.New("config is nil")
 	}

@@ -34,7 +34,7 @@ import (
 func TestHealth_SetConfig(t *testing.T) {
 	tests := []struct {
 		name           string
-		inputConfig    checks.Runtime
+		inputConfig    checks.Config
 		expectedConfig Config
 		wantErr        bool
 	}{
@@ -251,7 +251,7 @@ func TestHealth_Check(t *testing.T) {
 func TestHealth_Shutdown(t *testing.T) {
 	cDone := make(chan struct{}, 1)
 	c := Health{
-		CheckBase: checks.CheckBase{
+		Base: checks.Base{
 			DoneChan: cDone,
 		},
 	}

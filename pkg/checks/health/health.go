@@ -34,9 +34,9 @@ import (
 )
 
 var (
-	_            checks.Check   = (*Health)(nil)
-	_            checks.Runtime = (*Config)(nil)
-	stateMapping                = map[int]string{
+	_            checks.Check  = (*Health)(nil)
+	_            checks.Config = (*Config)(nil)
+	stateMapping               = map[int]string{
 		0: "unhealthy",
 		1: "healthy",
 	}
@@ -46,7 +46,7 @@ const CheckName = "health"
 
 // Health is a check that measures the availability of an endpoint
 type Health struct {
-	checks.CheckBase
+	checks.Base
 	config  Config
 	metrics metrics
 }
@@ -54,8 +54,8 @@ type Health struct {
 // NewCheck creates a new instance of the health check
 func NewCheck() checks.Check {
 	return &Health{
-		CheckBase: checks.CheckBase{
-			Mu:       sync.Mutex{},
+		Base: checks.Base{
+			Mutex:    sync.Mutex{},
 			DoneChan: make(chan struct{}, 1),
 		},
 		config: Config{
@@ -104,10 +104,10 @@ func (h *Health) Shutdown(_ context.Context) error {
 }
 
 // SetConfig sets the configuration for the health check
-func (h *Health) SetConfig(cfg checks.Runtime) error {
+func (h *Health) SetConfig(cfg checks.Config) error {
 	if c, ok := cfg.(*Config); ok {
-		h.Mu.Lock()
-		defer h.Mu.Unlock()
+		h.Mutex.Lock()
+		defer h.Mutex.Unlock()
 		h.metrics.RemoveObsolete(h.config.Targets, c.Targets)
 		h.config = *c
 		return nil
@@ -120,9 +120,9 @@ func (h *Health) SetConfig(cfg checks.Runtime) error {
 }
 
 // GetConfig returns the current configuration of the check
-func (h *Health) GetConfig() checks.Runtime {
-	h.Mu.Lock()
-	defer h.Mu.Unlock()
+func (h *Health) GetConfig() checks.Config {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
 	return &h.config
 }
 
