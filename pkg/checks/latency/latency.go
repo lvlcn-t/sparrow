@@ -69,13 +69,6 @@ type result struct {
 	Total float64 `json:"total"`
 }
 
-// metrics defines the metric collectors of the latency check
-type metrics struct {
-	duration  *prometheus.GaugeVec
-	count     *prometheus.CounterVec
-	histogram *prometheus.HistogramVec
-}
-
 // Run starts the latency check
 func (l *Latency) Run(ctx context.Context, cResult chan checks.ResultDTO) error {
 	ctx, cancel := logger.NewContextWithLogger(ctx)
@@ -117,6 +110,7 @@ func (l *Latency) SetConfig(cfg checks.Runtime) error {
 	if c, ok := cfg.(*Config); ok {
 		l.Mu.Lock()
 		defer l.Mu.Unlock()
+		l.metrics.RemoveObsolete(l.config.Targets, c.Targets)
 		l.config = *c
 		return nil
 	}
@@ -145,47 +139,9 @@ func (l *Latency) Schema() (*openapi3.SchemaRef, error) {
 	return checks.OpenapiFromPerfData[map[string]result](make(map[string]result))
 }
 
-// newMetrics initializes metric collectors of the latency check
-func newMetrics() metrics {
-	return metrics{
-		duration: prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{
-				Name: "sparrow_latency_duration_seconds",
-				Help: "Latency with status information of targets",
-			},
-			[]string{
-				"target",
-				"status",
-			},
-		),
-		count: prometheus.NewCounterVec(
-			prometheus.CounterOpts{
-				Name: "sparrow_latency_count",
-				Help: "Count of latency checks done",
-			},
-			[]string{
-				"target",
-			},
-		),
-		histogram: prometheus.NewHistogramVec(
-			prometheus.HistogramOpts{
-				Name: "sparrow_latency_duration",
-				Help: "Latency of targets in seconds",
-			},
-			[]string{
-				"target",
-			},
-		),
-	}
-}
-
 // GetMetricCollectors returns all metric collectors of check
 func (l *Latency) GetMetricCollectors() []prometheus.Collector {
-	return []prometheus.Collector{
-		l.metrics.duration,
-		l.metrics.count,
-		l.metrics.histogram,
-	}
+	return l.metrics.GetCollectors()
 }
 
 // check performs a latency check using a retry function
@@ -233,9 +189,7 @@ func (l *Latency) check(ctx context.Context) map[string]result {
 			lo.Debug("Successfully got latency status of target")
 			mu.Lock()
 			defer mu.Unlock()
-			l.metrics.duration.WithLabelValues(target, strconv.Itoa(results[target].Code)).Set(results[target].Total)
-			l.metrics.histogram.WithLabelValues(target).Observe(results[target].Total)
-			l.metrics.count.WithLabelValues(target).Inc()
+			l.metrics.Set(target, strconv.Itoa(results[target].Code), results[target].Total)
 		}()
 	}
 

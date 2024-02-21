@@ -65,11 +65,6 @@ func NewCheck() checks.Check {
 	}
 }
 
-// metrics contains the metric collectors for the Health check
-type metrics struct {
-	*prometheus.GaugeVec
-}
-
 // Run starts the health check
 func (h *Health) Run(ctx context.Context, cResult chan checks.ResultDTO) error {
 	ctx, cancel := logger.NewContextWithLogger(ctx)
@@ -113,6 +108,7 @@ func (h *Health) SetConfig(cfg checks.Runtime) error {
 	if c, ok := cfg.(*Config); ok {
 		h.Mu.Lock()
 		defer h.Mu.Unlock()
+		h.metrics.RemoveObsolete(h.config.Targets, c.Targets)
 		h.config = *c
 		return nil
 	}
@@ -141,26 +137,9 @@ func (h *Health) Schema() (*openapi3.SchemaRef, error) {
 	return checks.OpenapiFromPerfData[map[string]string](map[string]string{})
 }
 
-// newMetrics initializes metric collectors of the health check
-func newMetrics() metrics {
-	return metrics{
-		GaugeVec: prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{
-				Name: "sparrow_health_up",
-				Help: "Health of targets",
-			},
-			[]string{
-				"target",
-			},
-		),
-	}
-}
-
 // GetMetricCollectors returns all metric collectors of check
 func (h *Health) GetMetricCollectors() []prometheus.Collector {
-	return []prometheus.Collector{
-		h.metrics,
-	}
+	return h.metrics.GetCollectors()
 }
 
 // check performs a health check using a retry function
@@ -204,8 +183,7 @@ func (h *Health) check(ctx context.Context) map[string]string {
 			mu.Lock()
 			defer mu.Unlock()
 			results[target] = stateMapping[state]
-
-			h.metrics.WithLabelValues(target).Set(float64(state))
+			h.metrics.Set(target, float64(state))
 		}()
 	}
 

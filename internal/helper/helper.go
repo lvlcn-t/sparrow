@@ -65,3 +65,18 @@ func getExpBackoff(initialDelay time.Duration, iteration int) time.Duration {
 	}
 	return time.Duration(math.Pow(2, float64(iteration-1))) * initialDelay
 }
+
+// SliceContains checks if a slice contains a value
+//
+// Example:
+//
+//	SliceContains([]string{"a", "b", "c"}, "b") // returns true
+//	SliceContains([]int{1, 2, 3}, 4) // returns false
+func SliceContains[T comparable](slice []T, value T) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}

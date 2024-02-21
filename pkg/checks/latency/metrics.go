@@ -16,51 +16,50 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package dns
+package latency
 
 import (
 	"github.com/caas-team/sparrow/internal/helper"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// metrics defines the metric collectors of the DNS check
+// metrics defines the metric collectors of the latency check
 type metrics struct {
-	status    *prometheus.GaugeVec
 	duration  *prometheus.GaugeVec
 	count     *prometheus.CounterVec
 	histogram *prometheus.HistogramVec
 }
 
-// newMetrics initializes metric collectors of the dns check
+// newMetrics initializes metric collectors of the latency check
 func newMetrics() metrics {
 	return metrics{
-		status: prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{
-				Name: "sparrow_dns_status",
-				Help: "Specifies if the target can be resolved.",
-			},
-			[]string{"target"},
-		),
 		duration: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Name: "sparrow_dns_duration_seconds",
-				Help: "Duration of DNS resolution attempts in seconds.",
+				Name: "sparrow_latency_duration_seconds",
+				Help: "Latency with status information of targets",
 			},
-			[]string{"target"},
+			[]string{
+				"target",
+				"status",
+			},
 		),
 		count: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: "sparrow_dns_check_count",
-				Help: "Total number of DNS checks performed on the target and if they were successful.",
+				Name: "sparrow_latency_count",
+				Help: "Count of latency checks done",
 			},
-			[]string{"target"},
+			[]string{
+				"target",
+			},
 		),
 		histogram: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name: "sparrow_dns_duration",
-				Help: "Histogram of response times for DNS checks in seconds.",
+				Name: "sparrow_latency_duration",
+				Help: "Latency of targets in seconds",
 			},
-			[]string{"target"},
+			[]string{
+				"target",
+			},
 		),
 	}
 }
@@ -68,18 +67,15 @@ func newMetrics() metrics {
 // GetCollectors returns all metric collectors
 func (m *metrics) GetCollectors() []prometheus.Collector {
 	return []prometheus.Collector{
-		m.status,
 		m.duration,
 		m.count,
 		m.histogram,
 	}
 }
 
-// Set sets the metrics of one lookup target result
-func (m *metrics) Set(target string, results map[string]result, status float64) {
-	m.duration.WithLabelValues(target).Set(results[target].Total)
-	m.histogram.WithLabelValues(target).Observe(results[target].Total)
-	m.status.WithLabelValues(target).Set(status)
+func (m *metrics) Set(target, status string, total float64) {
+	m.duration.WithLabelValues(target, status).Set(total)
+	m.histogram.WithLabelValues(target).Observe(total)
 	m.count.WithLabelValues(target).Inc()
 }
 
@@ -87,10 +83,9 @@ func (m *metrics) Set(target string, results map[string]result, status float64) 
 func (m *metrics) RemoveObsolete(oldTars, newTars []string) {
 	for _, t := range oldTars {
 		if !helper.SliceContains(newTars, t) {
-			m.status.DeleteLabelValues(t)
 			m.duration.DeleteLabelValues(t)
-			m.count.DeleteLabelValues(t)
 			m.histogram.DeleteLabelValues(t)
+			m.count.DeleteLabelValues(t)
 		}
 	}
 }

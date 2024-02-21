@@ -185,3 +185,38 @@ func Test_getExpBackoff(t *testing.T) {
 		})
 	}
 }
+
+func TestSliceContains(t *testing.T) {
+	tests := []struct {
+		name  string
+		slice []any
+		value any
+		want  bool
+	}{
+		{
+			name:  "string slice contains string",
+			slice: []any{"a", "b", "c"},
+			value: "b",
+			want:  true,
+		},
+		{
+			name:  "int slice contains int",
+			slice: []any{1, 2, 3},
+			value: 4,
+			want:  false,
+		},
+		{
+			name:  "string slice contains int",
+			slice: []any{"a", "b", "c"},
+			value: 4,
+			want:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SliceContains(tt.slice, tt.value); got != tt.want {
+				t.Errorf("SliceContains() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
